@@ -1,0 +1,6 @@
+mpiexec -n 1 python main-mpi.py
+
+mpiexec -n 4 python main-mpi.py
+
+git hub stuff
+

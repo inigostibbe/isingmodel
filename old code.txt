@@ -1,0 +1,31 @@
+For 4 quadrant L/4 x L/4
+
+@jit(nopython=True, parallel=True)
+def monte_carlo_step(lattice, T, L, J, k_B):
+    for _ in prange(L**2 // 4):  # Divide iterations by 4 since we work on sub-lattices
+        for quadrant in range(4):  # Process each quadrant in parallel
+            i_offset = (quadrant // 2) * (L // 2)
+            j_offset = (quadrant % 2) * (L // 2)
+            i, j = np.random.randint(0, L // 2, 2)
+            i, j = i + i_offset, j + j_offset
+            S = lattice[i, j]
+            neighbours = sum_neighbours(lattice, i, j, L)
+            delta_E = 2 * J * S * neighbours
+            if delta_E < 0 or np.random.rand() < np.exp(-delta_E / (k_B * T)):
+                lattice[i, j] *= -1  # Flip the spin
+
+
+Recanngles = 2
+@jit(nopython=True, parallel=True)
+def monte_carlo_step(lattice, T, L, J, k_B):
+    for _ in prange(L**2 // 2):  # Divide iterations by 4 since we work on 4 rectangles
+        for rectangle in range(2):  # Process each rectangle in parallel
+            # Calculate j_offset for each of the 4 regions (L x L/4 each)
+            i = np.random.randint(0, L)  # Full height
+            j_offset = rectangle * (L // 2)
+            j = np.random.randint(0, L // 2) + j_offset  # Random within the L/4 width block
+            
+            S = lattice[i, j]
+            neighbours = sum_neighbours(lattice, i, j, L)
+            delta_E = 2 * J * S * neighbours
+            if delta_E < 0 or np.random.rand() < np.exp(-delta_E / (k_B * T)):
